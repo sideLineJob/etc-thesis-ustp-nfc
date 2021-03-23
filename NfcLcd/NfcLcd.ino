@@ -90,7 +90,7 @@ void setup() {
   digitalWrite(BUZZER_PIN, LOW);
 
   // Excel
-//  Serial.println("CLEARDATA");
+  Serial.println("CLEARDATA");
   Serial.println("LABEL,DATE,TIME,NAME,PROD DATE ADDED,ID,TYPE,PRODUCT LEFT");
 }
 
