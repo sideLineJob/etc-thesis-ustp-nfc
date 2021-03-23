@@ -9,7 +9,7 @@
 #define BUZZER_PIN 3
 
 // uncomment DEBUG for debuggging mode
-#define DEBUG
+//#define DEBUG
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -132,7 +132,7 @@ String nfcScannerListener() {
     String hex = getHex(mfrc522.uid.uidByte, mfrc522.uid.size);
   #endif
 
-  delay(1000); //change value if you want to read cards faster
+  delay(500);
 
   mfrc522.PICC_HaltA();
   mfrc522.PCD_StopCrypto1();
@@ -154,32 +154,46 @@ void checkProductId(String id) {
   boolean found = false;
   
   for (int i = 0; i < PRODUCTS_ARRAY_SIZE; i++) {
-    byte value = EEPROM.read(i);
+    
+    if (id == prodList[i].prodId) {
+      byte value = EEPROM.read(i);
 
-    if (value == 0 && id == prodList[i].prodId) {
-      lcdPrint("ID: " + id, 0, "Type: IN", 0);
-      
-      #ifdef DEBUG
-        Serial.println("ID: " + id + " | Type: IN" );
-      #endif
-      
-      EEPROM.put(i, 1);
-      prodList[i].active = true;
-      found = true;
-      break;
-      
-    } else if (value == 1 && id == prodList[i].prodId) {
-      lcdPrint("ID: " + id, 0, "Type: OUT", 0);
+      switch(value) {
+        case 1:
+          lcdPrint("ID: " + id, 0, "Type: OUT", 0);
+          EEPROM.write(i, 0);
+          prodList[i].active = false;
+          found = true;
 
-      #ifdef DEBUG
-        Serial.println("ID: " + id + " | Type: OUT" );
-      #endif
-      
-      EEPROM.put(i, 0);
-      prodList[i].active = false;
-      found = true;
+          #ifdef DEBUG
+            Serial.println("ID: " + id + " | Type: OUT" );
+          #endif
+          
+          break;
+        case 0:
+          lcdPrint("ID: " + id, 0, "Type: IN", 0);
+          EEPROM.write(i, 1);
+          prodList[i].active = true;
+          found = true;
+
+          #ifdef DEBUG
+            Serial.println("ID: " + id + " | Type: IN" );
+          #endif
+        
+          break;
+        default:
+          lcdPrint("ID: " + id, 0, "Type: OUT", 0);
+          EEPROM.write(i, 0);
+          prodList[i].active = false;
+          found = true;
+
+          #ifdef DEBUG
+            Serial.println("ID: " + id + " | Type: OUT" );
+          #endif
+          
+      }
+
       break;
-      
     }
   }
 
