@@ -25,6 +25,10 @@ struct Products {
 const int PRODUCTS_ARRAY_SIZE = 2;
 struct Products prodList[PRODUCTS_ARRAY_SIZE];
 
+// control variables
+int indexFound = false;
+int indexValue = 0;
+
 void setup() {
   Serial.begin(9600);
   SPI.begin();
@@ -84,6 +88,10 @@ void setup() {
   digitalWrite(BUZZER_PIN, HIGH);
   delay(100);
   digitalWrite(BUZZER_PIN, LOW);
+
+  // Excel
+//  Serial.println("CLEARDATA");
+  Serial.println("LABEL,DATE,TIME,NAME,PROD DATE ADDED,ID,TYPE,PRODUCT LEFT");
 }
 
 void loop() {
@@ -97,6 +105,20 @@ void loop() {
       "Prod Left: " + String(prodLeft), 0,
       " - Scan Card", 0
     );
+
+    if (indexFound) {
+      Serial.print("DATA,DATE,TIME,");
+      Serial.print(prodList[indexValue].prodName);
+      Serial.print(",");
+      Serial.print(prodList[indexValue].date);
+      Serial.print(",");
+      Serial.print(prodList[indexValue].prodId);
+      Serial.print(",");
+      Serial.print(prodList[indexValue].active ? "IN" : "OUT");
+      Serial.print(",");
+      Serial.println(prodLeft);
+      indexFound = false;
+    }
   }
 }
 
@@ -154,7 +176,7 @@ void checkProductId(String id) {
   boolean found = false;
   
   for (int i = 0; i < PRODUCTS_ARRAY_SIZE; i++) {
-    
+
     if (id == prodList[i].prodId) {
       byte value = EEPROM.read(i);
 
@@ -168,7 +190,10 @@ void checkProductId(String id) {
           #ifdef DEBUG
             Serial.println("ID: " + id + " | Type: OUT" );
           #endif
-          
+
+          indexValue = i;
+          indexFound = true;
+              
           break;
         case 0:
           lcdPrint("ID: " + id, 0, "Type: IN", 0);
@@ -179,6 +204,9 @@ void checkProductId(String id) {
           #ifdef DEBUG
             Serial.println("ID: " + id + " | Type: IN" );
           #endif
+
+          indexValue = i;
+          indexFound = true;
         
           break;
         default:
@@ -190,6 +218,9 @@ void checkProductId(String id) {
           #ifdef DEBUG
             Serial.println("ID: " + id + " | Type: OUT" );
           #endif
+
+          indexValue = i;
+          indexFound = true;
           
       }
 
@@ -232,13 +263,13 @@ void lcdPrint(String line1, int cursorNum1, String line2, int cursorNum2) {
 
 void initializeDefaultProducts() {
   // Products 1
-  prodList[0].prodName   = "Prod name";
+  prodList[0].prodName   = "Product 1";
   prodList[0].prodId     = "79-12-ad-99";
-  prodList[0].date       = "12/121/1212";
+  prodList[0].date       = "03/21/2021";
   prodList[0].active = EEPROM.read(0) == 0 ? false : true;
   // Product 2
-  prodList[1].prodName   = "Prod name";
+  prodList[1].prodName   = "Product 2";
   prodList[1].prodId     = "c9-fe-8e-6e";
-  prodList[1].date       = "12/121/1212";
+  prodList[1].date       = "03/24/2021";
   prodList[1].active = EEPROM.read(1) == 0 ? false : true;
 }
